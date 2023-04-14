@@ -1,0 +1,90 @@
+﻿using System;
+using System.ComponentModel.Design;
+using System.Data;
+using Npgsql;
+
+class Sample
+{
+    static void Main(string[] args)
+    {
+        // Connect to a PostgreSQL database
+        NpgsqlConnection conn = new NpgsqlConnection("Server=127.0.0.1:5432;User Id=postgres; " +
+           "Password=catswithglasses;Database=prods;");
+        conn.Open();
+
+        // Define a query returning a single row result set
+        NpgsqlCommand command_p = new NpgsqlCommand("SELECT * FROM product", conn);
+        NpgsqlCommand command_c = new NpgsqlCommand("SELECT * FROM customer", conn);
+
+
+
+        // Execute the query and obtain the value of the first column of the first row
+        //Int64 count = (Int64)command.ExecuteScalar();
+        NpgsqlDataReader reader1 = command_p.ExecuteReader();
+
+        var dt_p = new DataTable();
+
+        dt_p.Load(reader1);
+
+        result7(dt_p);
+
+
+        NpgsqlDataReader reader2 = command_c.ExecuteReader();
+
+        var dt_c = new DataTable();
+
+        dt_c.Load(reader2);
+
+        result20(dt_c);
+
+        conn.Close();
+    }
+    static void result7(DataTable data)
+    {
+
+        foreach (DataRow row in data.Rows)
+        {
+
+            if ((Int16)row["prod_quantity"] <= 30 && (Int16)row["prod_quantity"] >= 12)
+            {
+                Console.WriteLine(row["prod_id"] + " " + (string)row["prod_desc"] + " " + row["prod_quantity"]);
+            }
+        }
+    }
+
+    
+    static void result20(DataTable data)
+    {
+        
+        Dictionary<string, decimal> dict = new Dictionary<string, decimal>();
+        decimal sum;
+        foreach (DataRow row in data.Rows)
+        {
+            
+            if (!dict.ContainsKey(row["rep_id"].ToString()))
+            {
+                //Console.WriteLine("Hello!");
+                sum = (decimal)row["cust_balance"];
+                dict.Add(row["rep_id"].ToString(), sum);
+
+
+                
+                
+            }
+            else
+            {
+                sum = dict[row["rep_id"].ToString()] + (decimal)row["cust_balance"];
+                dict[row["rep_id"].ToString()] = sum;
+            }
+        }
+        foreach (var item in dict)
+        {
+            if(item.Value > 12000)
+            {
+                Console.WriteLine(item.Key + " " + item.Value);
+            }
+        }
+        
+    }
+}   
+   
